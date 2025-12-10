@@ -11,12 +11,16 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Password must be provided"],
     },
+    userName: {
+      type: String,
+      required: [true, "UserName must be provided"],
+    },
     userPhoneNumber: {
-      type: number,
+      type: Number,
       required: [true, "PhoneNumber must be provided"],
     },
     role: {
-      type: string,
+      type: String,
       enum: ["customer", "admin"],
       default: "customer",
     },
