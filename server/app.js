@@ -1,76 +1,81 @@
 const express = require("express");
 const connectDB = require("./database/connectDB");
-const User = require("./model/userModel");
-const jwt = require("jsonwebtoken");
 
 const app = express();
-
-const bcrypt = require("bcrypt");
 
 require("dotenv").config();
 connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+//const User = require("./model/userModel");
+// const jwt = require("jsonwebtoken");
+// const bcrypt = require("bcrypt");
+const { registerUser, loginUser } = require("./controller/authController");
 
-app.post("/register", async (req, res) => {
-  const { email, password, phoneNumber, username } = req.body;
-  if (!email || !password || !phoneNumber || !username) {
-    return res.status(400).json({
-      message: "Please provide email,password,phoneNumber",
-    });
-  } //else
-  const userFound = await User.find({ userEmail: email });
-  if (userFound.length > 0) {
-    return res.status(400).json({
-      message: "USer with that email already registered",
-    });
-  }
+//Routes Here
+const authRoute = require("./routes/authRoute");
 
-  await User.create({
-    userName: username,
-    userPhoneNumber: phoneNumber,
-    userEmail: email,
-    userPassword: bcrypt.hashSync(password, 10),
-  });
-
-  res.status(201).json({
-    message: "User Registered successfully !!",
-  });
-});
-
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    res.status(400).json({
-      message: "Please provide email,password",
-    });
-  }
-  const userFound = await User.find({ userEmail: email });
-  if (userFound.length == 0) {
-    return res.status(400).json({
-      message: "USer with that email is not registered",
-    });
-  }
-  //password check
-  const isMatched = bcrypt.compareSync(password, userFound[0].userPassword);
-  if (!isMatched) {
-    //generate token
-    const token = jwt.sign({ id: userFound[0]._id }, process.env.SECRET_KEY, {
-      expiresIn: "30d",
-    });
-
-    res.status(200).json({
-      message: "User logged in successfully",
-      token,
-    });
-  } else {
-    res.status(404).json({
-      message: "Invalid Password",
-    });
-  }
-});
+app.use("", authRoute);
 
 const port = process.env.PORT;
 app.listen(port, () => {
   console.log(`Server has started at PORT ${port}`);
 });
+
+// app.post("/register", async (req, res) => {
+//   const { email, password, phoneNumber, username } = req.body;
+//   if (!email || !password || !phoneNumber || !username) {
+//     return res.status(400).json({
+//       message: "Please provide email,password,phoneNumber",
+//     });
+//   } //else
+//   const userFound = await User.find({ userEmail: email });
+//   if (userFound.length > 0) {
+//     return res.status(400).json({
+//       message: "USer with that email already registered",
+//     });
+//   }
+
+//   await User.create({
+//     userName: username,
+//     userPhoneNumber: phoneNumber,
+//     userEmail: email,
+//     userPassword: bcrypt.hashSync(password, 10),
+//   });
+
+//   res.status(201).json({
+//     message: "User Registered successfully !!",
+//   });
+// });
+
+// app.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
+//   if (!email || !password) {
+//     res.status(400).json({
+//       message: "Please provide email,password",
+//     });
+//   }
+//   const userFound = await User.find({ userEmail: email });
+//   if (userFound.length == 0) {
+//     return res.status(400).json({
+//       message: "USer with that email is not registered",
+//     });
+//   }
+//   //password check
+//   const isMatched = bcrypt.compareSync(password, userFound[0].userPassword);
+//   if (!isMatched) {
+//     //generate token
+//     const token = jwt.sign({ id: userFound[0]._id }, process.env.SECRET_KEY, {
+//       expiresIn: "30d",
+//     });
+
+//     res.status(200).json({
+//       message: "User logged in successfully",
+//       token,
+//     });
+//   } else {
+//     res.status(404).json({
+//       message: "Invalid Password",
+//     });
+//   }
+// });
