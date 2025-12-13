@@ -60,7 +60,7 @@ exports.loginUser = async (req, res) => {
   }
 };
 
-exports.forgotPassword = (req, res) => {
+exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({
@@ -68,4 +68,12 @@ exports.forgotPassword = (req, res) => {
     });
   }
   //check if that email is register or not
+  const userExit = await User.find({ userEmail: email });
+  if (userExist.lenght == 0) {
+    return res.status(404).json({
+      message: "Email is not registered",
+    });
+  }
+  //send OTP to that email
+  const Otp = Math.floor(1000 + Math.random() * 9000);
 };
