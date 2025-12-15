@@ -10,7 +10,7 @@ app.use(express.urlencoded({ extended: true }));
 //const User = require("./model/userModel");
 // const jwt = require("jsonwebtoken");
 // const bcrypt = require("bcrypt");
-const { registerUser, loginUser } = require("./controller/authController");
+const { registerUser, loginUser } = require("./controller/auth/authController");
 
 //Routes Here
 const authRoute = require("./routes/authRoute");
