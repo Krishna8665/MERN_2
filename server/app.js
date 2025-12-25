@@ -14,8 +14,10 @@ const { registerUser, loginUser } = require("./controller/auth/authController");
 
 //Routes Here
 const authRoute = require("./routes/authRoute");
+const productRoute = require("./routes/productRoute");
 
 app.use("", authRoute);
+app.use("", productRoute);
 
 const port = process.env.PORT;
 app.listen(port, () => {
@@ -63,7 +65,7 @@ app.listen(port, () => {
 //   }
 //   //password check
 //   const isMatched = bcrypt.compareSync(password, userFound[0].userPassword);
-//   if (!isMatched) {
+//   if (isMatched) {
 //     //generate token
 //     const token = jwt.sign({ id: userFound[0]._id }, process.env.SECRET_KEY, {
 //       expiresIn: "30d",

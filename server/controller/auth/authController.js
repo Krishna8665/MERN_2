@@ -70,7 +70,7 @@ exports.forgotPassword = async (req, res) => {
   }
   //check if that email is register or not
   const userExist = await User.find({ userEmail: email });
-  if (userExist.length == 0) {
+  if (!userExist) {
     return res.status(404).json({
       message: "Email is not registered",
     });
@@ -104,7 +104,7 @@ exports.verifyOtp = async (req, res) => {
       message: "Email is not registered",
     });
   }
-  if (userExists[0].otp !== (otp)) {
+  if (userExists[0].otp !== otp) {
     return res.status(400).json({
       message: "Invalid otp",
     });
