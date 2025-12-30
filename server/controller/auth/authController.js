@@ -86,6 +86,7 @@ exports.forgotPassword = async (req, res) => {
   });
   res.json({
     message: "Forgot Password OTP is sended",
+    OTP : otp
   });
 };
 
