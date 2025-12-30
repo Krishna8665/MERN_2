@@ -7,6 +7,7 @@ require("dotenv").config();
 connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("uploads"));
 //const User = require("./model/userModel");
 // const jwt = require("jsonwebtoken");
 // const bcrypt = require("bcrypt");
