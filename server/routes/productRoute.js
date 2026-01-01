@@ -3,6 +3,8 @@ const {
   createProduct,
   getProduct,
   getProducts,
+  deleteProduct,
+  editProduct,
 } = require("../controller/admin/product/productController");
 const isAuthenticated = require("../middleware/isAuthenticated");
 const permitTo = require("../middleware/permitTo");
@@ -19,6 +21,10 @@ router
     createProduct
   )
   .get(catchAsync(getProducts));
-router.route("/products/:id").get(catchAsync(getProduct));
+router
+  .route("/products/:id")
+  .get(catchAsync(getProduct))
+  .delete(isAuthenticated, permitTo("admin"), catchAsync(deleteProduct))
+  .patch(isAuthenticated, permitTo("admin"), editProduct);
 
 module.exports = router;
