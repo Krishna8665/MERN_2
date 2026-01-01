@@ -1,10 +1,13 @@
 const express = require("express");
 const {
   createProduct,
+  getProduct,
+  getProducts,
 } = require("../controller/admin/product/productController");
 const isAuthenticated = require("../middleware/isAuthenticated");
 const permitTo = require("../middleware/permitTo");
 const upload = require("../middleware/multerConfig");
+const catchAsync = require("../services/catchAsync");
 const router = express.Router();
 
 router
@@ -14,6 +17,8 @@ router
     permitTo("admin"),
     upload.single("productImage"),
     createProduct
-  );
+  )
+  .get(catchAsync(getProducts));
+router.route("/products/:id").get(catchAsync(getProduct));
 
 module.exports = router;

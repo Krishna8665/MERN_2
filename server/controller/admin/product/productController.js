@@ -1,4 +1,5 @@
 const Product = require("../../../model/productModel");
+const catchAsync = require("../../../services/catchAsync");
 
 exports.createProduct = async (req, res) => {
   try {
@@ -51,6 +52,42 @@ exports.createProduct = async (req, res) => {
     res.status(500).json({
       message: "Failed to create product",
       error: error.message,
+    });
+  }
+};
+
+exports.getProducts = catchAsync(async (req, res) => {
+  const products = await Product.find();
+  if (products.lenght === 0) {
+    res.status(400).json({
+      message: "No product Found",
+      products: [],
+    });
+  } else {
+    res.status(200).json({
+      message: "Product fetched successfully",
+      products,
+    });
+  }
+});
+
+exports.getProduct = async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(400).json({
+      message: "Please provide product id",
+    });
+  }
+  const product = await Product.find({ _id: id });
+  if (product.length == 0) {
+    res.status(400).json({
+      message: "No product found with that id",
+      product: [],
+    });
+  } else {
+    res.status(200).json({
+      message: "Product Fetched Successfully",
+      product,
     });
   }
 };
