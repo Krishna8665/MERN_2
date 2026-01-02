@@ -20,11 +20,16 @@ router
     upload.single("productImage"),
     createProduct
   )
-  .get(catchAsync(getProducts));
+  .get(getProducts);
 router
-  .route("/products/:id")
+  .route("/product/:id")
   .get(catchAsync(getProduct))
   .delete(isAuthenticated, permitTo("admin"), catchAsync(deleteProduct))
-  .patch(isAuthenticated, permitTo("admin"), editProduct);
+  .patch(
+    isAuthenticated,
+    permitTo("admin"),
+    upload.single("productImage"),
+    editProduct
+  );
 
 module.exports = router;

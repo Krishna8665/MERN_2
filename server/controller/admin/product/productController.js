@@ -12,7 +12,7 @@ exports.createProduct = async (req, res) => {
       filePath =
         "https://media.istockphoto.com/id/814423752/photo/eye-of-model-with-colorful-art-make-up-close-up.jpg?s=612x612&w=0&k=20&c=l15OdMWjgCKycMMShP8UK94ELVlEGvt7GmB_esHWPYE=";
     } else {
-      filePath = req.file.path;
+      filePath = req.file.path.replace(/\\/g, "/").split("/").pop();
     }
 
     const {
@@ -43,7 +43,7 @@ exports.createProduct = async (req, res) => {
       productPrice,
       productStatus,
       productStockQty,
-      productImage: process.env.BACKEND_URL + filePath,
+      productImage: file ? `${process.env.BACKEND_URL}/${filePath}` : filePath,
     });
 
     res.status(201).json({
@@ -99,6 +99,25 @@ exports.deleteProduct = async (req, res) => {
       message: "Please provide product id",
     });
   }
+  const oldData = await Product.findById(id);
+  if (!oldData) {
+    res.status(404).json({
+      message: "No data found with that id",
+    });
+  }
+  const oldProductImage = oldData.productImage; //
+  const lenghtTocut = process.env.BACKEND_URL.length;
+  const finalFilePathAfterCut = oldProductImage.slice(lenghtTocut); //1111111-abcd.png
+  if (req.file && req.file.filename) {
+    //Remove File from uploads folder
+    fs.unlink("./uploads/" + finalFilePathAfterCut, (err) => {
+      if (err) {
+        console.log("error deleting file", err);
+      } else {
+        console.log("file deleted successfully");
+      }
+    });
+  }
   await Product.findByIdAndDelete(id);
   res.status(200).json({
     message: "Product Deleted Successfully",
@@ -140,7 +159,7 @@ exports.editProduct = async (req, res) => {
   const finalFilePathAfterCut = oldProductImage.slice(lenghtTocut); //1111111-abcd.png
   if (req.file && req.file.filename) {
     //Remove File from uploads folder
-    fs.unlink(finalFilePathAfterCut, (err) => {
+    fs.unlink("./uploads/" + finalFilePathAfterCut, (err) => {
       if (err) {
         console.log("error deleting file", err);
       } else {
@@ -159,7 +178,7 @@ exports.editProduct = async (req, res) => {
       productStockQty,
       productImage:
         req.file && req.file.filename
-          ? process.env.BACKEND_URL + req.file.filename
+          ? `${process.env.BACKEND_URL}/${req.file.filename}`
           : oldProductImage,
     },
     {

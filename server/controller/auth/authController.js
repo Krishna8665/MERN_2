@@ -36,12 +36,20 @@ exports.loginUser = async (req, res) => {
       message: "Please provide email,password",
     });
   }
-  const userFound = await User.find({ userEmail: email });
-  if (userFound.length == 0) {
+  const userFound = await User.find({ userEmail: email }).select("+userPassword");
+  if (!Array.isArray(userFound) || userFound.length === 0) {
     return res.status(400).json({
-      message: "USer with that email is not registered",
+      message: "User with that email is not registered",
     });
   }
+
+  // check hashed password exists
+  if (!userFound[0].userPassword) {
+    return res.status(500).json({
+      message: "User password not found in database",
+    });
+  }
+
   //password check
   const isMatched = bcrypt.compareSync(password, userFound[0].userPassword);
   if (isMatched) {
@@ -70,11 +78,12 @@ exports.forgotPassword = async (req, res) => {
   }
   //check if that email is register or not
   const userExist = await User.find({ userEmail: email });
-  if (!userExist) {
+  if (userExist.length === 0) {
     return res.status(404).json({
       message: "Email is not registered",
     });
   }
+
   //send OTP to that email
   const otp = Math.floor(1000 + Math.random() * 9000);
   userExist[0].otp = otp;
@@ -86,7 +95,7 @@ exports.forgotPassword = async (req, res) => {
   });
   res.json({
     message: "Forgot Password OTP is sended",
-    OTP : otp
+    OTP: otp,
   });
 };
 
