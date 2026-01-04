@@ -7,7 +7,7 @@ require("dotenv").config();
 connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static('uploads'));
+app.use(express.static("uploads"));
 //const User = require("./model/userModel");
 // const jwt = require("jsonwebtoken");
 // const bcrypt = require("bcrypt");
@@ -17,10 +17,12 @@ const { registerUser, loginUser } = require("./controller/auth/authController");
 const authRoute = require("./routes/authRoute");
 const productRoute = require("./routes/productRoute");
 const adminUser = require("./routes/adminUsersRoute");
+const userReviewRoute = require("./routes/userReviewRoute");
 
 app.use("", authRoute);
 app.use("", productRoute);
 app.use("", adminUser);
+app.use("", userReviewRoute);
 
 const port = process.env.PORT;
 app.listen(port, () => {
