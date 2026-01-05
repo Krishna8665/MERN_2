@@ -52,6 +52,22 @@ exports.getProductReview = async (req, res) => {
   });
 };
 
+exports.getMyReviews = async (req, res) => {
+  const userId = req.user.id;
+  const reviews = await Review.find({ userId });
+  if (reviews.length == 0) {
+    res.status(404).json({
+      message: "You havenot given review to any products yet",
+      reviews: [],
+    });
+  } else {
+    res.status(200).json({
+      message: "review fetched successfully",
+      data: reviews,
+    });
+  }
+};
+
 exports.deleteReview = async (req, res) => {
   const reviewId = req.params.id;
   //check if that User created this review
@@ -60,7 +76,7 @@ exports.deleteReview = async (req, res) => {
   const ownerIdofReview = review.userId;
   if ((ownerIdofReview = review.userId)) {
     return res.status(400).json({
-      message: "You dont have permission to delete thsi review",
+      message: "You dont have permission to delete this review",
     });
   }
 

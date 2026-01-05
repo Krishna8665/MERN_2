@@ -62,12 +62,12 @@ exports.getProducts = catchAsync(async (req, res) => {
   if (products.lenght === 0) {
     res.status(400).json({
       message: "No product Found",
-      products: [],
+      data: [],
     });
   } else {
     res.status(200).json({
       message: "Product fetched successfully",
-      products,
+      data: products,
     });
   }
 });
@@ -80,6 +80,10 @@ exports.getProduct = async (req, res) => {
     });
   }
   const product = await Product.find({ _id: id });
+  const productReviews = await Reviews.find({ productId: id })
+    .populate("userId")
+    .populate("productId");
+
   if (product.length == 0) {
     res.status(400).json({
       message: "No product found with that id",
@@ -88,10 +92,12 @@ exports.getProduct = async (req, res) => {
   } else {
     res.status(200).json({
       message: "Product Fetched Successfully",
-      product,
+      data: product,
+      data2: productReviews,
     });
   }
 };
+
 exports.deleteProduct = async (req, res) => {
   const { id } = req.params;
   if (!id) {
@@ -188,6 +194,6 @@ exports.editProduct = async (req, res) => {
   );
   res.status(200).json({
     message: "Product creted successfuly",
-    datas,
+    data: datas,
   });
 };
