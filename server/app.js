@@ -18,11 +18,15 @@ const authRoute = require("./routes/authRoute");
 const productRoute = require("./routes/productRoute");
 const adminUser = require("./routes/adminUsersRoute");
 const userReviewRoute = require("./routes/userReviewRoute");
+const profileRoute = require("./routes/profileRoute");
+const cartRoute = require("./routes/cartRoute");
 
 app.use("", authRoute);
 app.use("", productRoute);
 app.use("", adminUser);
 app.use("", userReviewRoute);
+app.use("", profileRoute);
+app.use("", cartRoute);
 
 const port = process.env.PORT;
 app.listen(port, () => {

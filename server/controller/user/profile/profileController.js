@@ -11,7 +11,4 @@ exports.getMyProfile = async (req, res) => {
   });
 };
 
-//update my profile controller
-// exports.updateMyProfile = async(req,res)=>{
-//     const {userName,userEmail}=
-// }
+

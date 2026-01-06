@@ -1,5 +1,5 @@
-const Product = require("../../model/productModel");
-const Review = require("../../model/reviewModel");
+const Product = require("../../../model/productModel");
+const Review = require("../../../model/reviewModel");
 
 exports.createReview = async (req, res) => {
   const userId = req.user.id;
@@ -10,7 +10,7 @@ exports.createReview = async (req, res) => {
       message: "Please provide rating,message,productId",
     });
   }
-  //check if that productID product exists or not
+  //check if that productID product exists or
   const productExist = await Product.findById(productId);
   if (!productExist) {
     return res.status(404).json({
@@ -72,10 +72,14 @@ exports.deleteReview = async (req, res) => {
   const reviewId = req.params.id;
   //check if that User created this review
   const userId = req.user.id;
-  const review = Review.findById(reviewId);
-  const ownerIdofReview = review.userId;
-  if ((ownerIdofReview = review.userId)) {
-    return res.status(400).json({
+  const review = await Review.findById(reviewId);
+  if (!reviewId) {
+    res.status(400).json({
+      message: "Please provide reviewId",
+    });
+  }
+  if (review.userId.toString() !== userId) {
+    return res.status(403).json({
       message: "You dont have permission to delete this review",
     });
   }

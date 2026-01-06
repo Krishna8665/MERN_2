@@ -1,4 +1,5 @@
 const Product = require("../../../model/productModel");
+const Review = require("../../../model/reviewModel");
 const catchAsync = require("../../../services/catchAsync");
 const fs = require("fs");
 
@@ -79,21 +80,23 @@ exports.getProduct = async (req, res) => {
       message: "Please provide product id",
     });
   }
-  const product = await Product.find({ _id: id });
-  const productReviews = await Reviews.find({ productId: id })
+  const productId = await Product.find({ _id: id });
+  const productReviews = await Review.find({ productId: id })
     .populate("userId")
     .populate("productId");
 
   if (product.length == 0) {
     res.status(400).json({
       message: "No product found with that id",
-      product: [],
+      data: {
+        data: [],
+        data2: [],
+      },
     });
   } else {
     res.status(200).json({
       message: "Product Fetched Successfully",
-      data: product,
-      data2: productReviews,
+      data: { product, productReviews },
     });
   }
 };

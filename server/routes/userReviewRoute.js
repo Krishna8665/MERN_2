@@ -3,7 +3,7 @@ const {
   getProductReview,
   createReview,
   deleteReview,
-} = require("../controller/user/userController");
+} = require("../controller/user/review/reviewController");
 const isAuthenticated = require("../middleware/isAuthenticated");
 const permitTo = require("../middleware/permitTo");
 const catchAsync = require("../services/catchAsync");
@@ -13,6 +13,6 @@ router.route("/reviews").get(isAuthenticated, catchAsync(getMyReviews));
 router
   .route("/reviews/:id")
   .get(catchAsync(getProductReview))
-  .delete(isAuthenticated,catchAsync(deleteReview))
+  .delete(isAuthenticated, catchAsync(deleteReview))
   .post(isAuthenticated, catchAsync(createReview));
 module.exports = router;
