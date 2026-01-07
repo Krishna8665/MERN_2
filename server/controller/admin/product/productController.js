@@ -22,6 +22,7 @@ exports.createProduct = async (req, res) => {
       productPrice,
       productStatus,
       productStockQty,
+      mainType,
     } = req.body;
 
     // Validation
@@ -30,7 +31,8 @@ exports.createProduct = async (req, res) => {
       !productDescription ||
       !productPrice ||
       !productStatus ||
-      !productStockQty
+      !productStockQty ||
+      !mainType
     ) {
       return res.status(400).json({
         message: "Please provide all the fields",
@@ -44,6 +46,7 @@ exports.createProduct = async (req, res) => {
       productPrice,
       productStatus,
       productStockQty,
+      mainType,
       productImage: file ? `${process.env.BACKEND_URL}/${filePath}` : filePath,
     });
 
@@ -141,6 +144,7 @@ exports.editProduct = async (req, res) => {
     productPrice,
     productStatus,
     productStockQty,
+    mainType,
   } = req.body;
 
   // Validation
@@ -150,6 +154,7 @@ exports.editProduct = async (req, res) => {
     !productPrice ||
     !productStatus ||
     !productStockQty ||
+    !mainType ||
     !id
   ) {
     return res.status(400).json({
@@ -185,6 +190,7 @@ exports.editProduct = async (req, res) => {
       productPrice,
       productStatus,
       productStockQty,
+      mainType,
       productImage:
         req.file && req.file.filename
           ? `${process.env.BACKEND_URL}/${req.file.filename}`

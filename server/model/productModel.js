@@ -24,6 +24,11 @@ const productSchema = new Schema(
       enum: ["available", "unavailable"],
     },
     productImage: String,
+    mainType: {
+      type: String,
+      enum: ["Veg", "Chicken", "Buff", "Pork", "Mutton", "Mixed"],
+      required: true,
+    },
   },
   { timestamps: true }
 );
