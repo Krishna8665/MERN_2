@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/cartContext";
+import ProductGrid from "../components/ProductGrid";
 
 // You can later move this to a separate data file or fetch from API
 const featuredProducts = [
@@ -106,60 +107,25 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-10 sm:mb-16">
+      <section className="py-12 sm:py-16 md:py-20 lg:py-28 bg-gradient-to-b from-stone-50 to-white">
+        <div className="container mx-auto px-4">
+          {/* Section Header */}
+          <div className="mb-10 text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-playfair mb-4">
-              Featured Pieces
+              Featured MoMos
             </h2>
-            <div className="w-full h-1 bg-amber-400 mx-auto rounded-full" />
+
+            <div className=" h-1 bg-amber-400 mx-auto rounded-full" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 md:gap-10">
-            {featuredProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6 }}
-                className="group"
-              >
-                <div className="relative overflow-hidden rounded-2xl shadow-lg mb-4 aspect-square">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <button
-                      onClick={() => addToCart(product)}
-                      className="bg-white text-gray-900 px-6 py-2 sm:px-8 sm:py-3 rounded-full font-medium text-sm sm:text-base transform -translate-y-6 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-amber-50"
-                    >
-                      Quick Add
-                    </button>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <h3 className="font-playfair text-lg sm:text-xl mb-1">
-                    {product.name}
-                  </h3>
-                  <p className="text-amber-600 font-medium text-base sm:text-lg">
-                    ${product.price}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12 sm:mt-16">
-            <Link
-              to="/shop"
-              className="inline-block px-8 py-3 sm:px-10 sm:py-4 md:px-12 md:py-4 border-2 border-amber-500 text-amber-600 rounded-full hover:bg-amber-50 transition-colors font-medium text-base sm:text-lg"
-            >
-              View All Collections →
-            </Link>
-          </div>
+          {/*  REUSED PRODUCT GRID */}
+          <ProductGrid
+            products={featuredProducts}
+            onAddToCart={(p) => console.log("Add to cart:", p)}
+            onQuickView={(p) => console.log("Quick view:", p)}
+            disableAnimations={false} // keep light animations on home
+            limit={8} // show limited items on home
+          />
         </div>
       </section>
 
@@ -170,7 +136,7 @@ export default function Home() {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-playfair mb-4">
               Explore by Category
             </h2>
-            <div className="w-full h-1 bg-amber-400 mx-auto rounded-full" />
+            <div className=" h-1 bg-amber-400 mx-auto rounded-full" />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8 md:gap-10">

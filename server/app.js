@@ -1,17 +1,27 @@
 const express = require("express");
 const connectDB = require("./database/connectDB");
-
+const cors = require("cors");
 const app = express();
 
 require("dotenv").config();
 connectDB();
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("uploads"));
+
 //const User = require("./model/userModel");
 // const jwt = require("jsonwebtoken");
 // const bcrypt = require("bcrypt");
 const { registerUser, loginUser } = require("./controller/auth/authController");
+
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+  })
+);
 
 //Routes Here
 const authRoute = require("./routes/authRoute");

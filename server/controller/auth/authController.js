@@ -26,6 +26,11 @@ exports.registerUser = async (req, res) => {
 
   res.status(201).json({
     message: "User Registered successfully !!",
+    user: {
+      name: newUser.userName,
+      email: newUser.userEmail,
+      phoneNumber: newUser.userPhoneNumber,
+    },
   });
 };
 
@@ -36,7 +41,9 @@ exports.loginUser = async (req, res) => {
       message: "Please provide email,password",
     });
   }
-  const userFound = await User.find({ userEmail: email }).select("+userPassword");
+  const userFound = await User.find({ userEmail: email }).select(
+    "+userPassword"
+  );
   if (!Array.isArray(userFound) || userFound.length === 0) {
     return res.status(400).json({
       message: "User with that email is not registered",
@@ -61,6 +68,11 @@ exports.loginUser = async (req, res) => {
     res.status(200).json({
       message: "User logged in successfully",
       token,
+      user: {
+        name: userFound[0].userName,
+        email: userFound[0].userEmail,
+        role: userFound[0].role,
+      },
     });
   } else {
     res.status(404).json({

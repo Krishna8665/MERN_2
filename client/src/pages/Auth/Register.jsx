@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Phone } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import axios from "axios";
 
 export default function Register() {
-  const navigate = useNavigate();
+  const { register } = useAuth();
 
   const [formData, setFormData] = useState({
     userName: "",
@@ -13,30 +15,24 @@ export default function Register() {
     userPhoneNumber: "",
     userPassword: "",
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
-    // Basic client-side validation
+    // Validation
     if (formData.userPassword.length < 6) {
       setError("Password must be at least 6 characters long");
       return;
     }
-
     if (!/^\d{10}$/.test(formData.userPhoneNumber)) {
       setError("Please enter a valid 10-digit phone number");
       return;
@@ -45,32 +41,28 @@ export default function Register() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // Axios POST request
+      const { data } = await axios.post(
+        "http://localhost:3000/register",
+        formData
+      );
+
+      // Register user in AuthContext
+      register(
+        {
+          name: data.user.userName,
+          email: data.user.userEmail,
+          role: data.user.role || "user", // default role
         },
-        body: JSON.stringify({
-          userName: formData.userName,
-          userEmail: formData.userEmail,
-          userPhoneNumber: Number(formData.userPhoneNumber),
-          userPassword: formData.userPassword,
-        }),
-      });
+        data.token
+      );
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
-
-      setSuccess("Registration successful! Redirecting to login...");
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 2000);
+      setSuccess("Account created successfully! Redirecting...");
+      setTimeout(() => navigate("/login"), 2000); // Redirect to login after 2s
     } catch (err) {
-      setError(err.message || "Something went wrong. Please try again.");
+      setError(
+        err.response?.data?.message || err.message || "Something went wrong."
+      );
     } finally {
       setLoading(false);
     }
