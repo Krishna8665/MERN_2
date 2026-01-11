@@ -19,10 +19,8 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
   })
 );
-
 //Routes Here
 const authRoute = require("./routes/authRoute");
 const productRoute = require("./routes/productRoute");
