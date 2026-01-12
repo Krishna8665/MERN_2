@@ -1,61 +1,78 @@
+// src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load user on refresh
+  // Load from localStorage on mount/refresh
   useEffect(() => {
+    const storedToken = localStorage.getItem("token");
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+
+    if (storedToken && storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setToken(storedToken);
+        setUser(parsedUser);
+
+        // Set default axios header for all requests
+        axios.defaults.headers.common[
+          "Authorization"
+        ] = `Bearer ${storedToken}`;
+      } catch (err) {
+        console.error("Invalid stored auth data:", err);
+        logout();
+      }
     }
+    setIsLoading(false);
   }, []);
 
-  // LOGIN
-  // src/context/AuthContext.jsx
-  const login = (userData, token) => {
-    // Save token
-    localStorage.setItem("token", token);
+  // Login
+  const login = (userData, authToken) => {
+    localStorage.setItem("token", authToken);
+    localStorage.setItem("user", JSON.stringify(userData));
 
-    // Create frontend user object
-    const frontendUser = {
-      name: userData.name,
-      email: userData.email,
-      role: userData.role || "customer",
-    };
+    setToken(authToken);
+    setUser(userData);
 
-    localStorage.setItem("user", JSON.stringify(frontendUser));
-    setUser(frontendUser);
+    // Set axios header globally
+    axios.defaults.headers.common["Authorization"] = `Bearer ${authToken}`;
 
     // Redirect based on role
-    if (frontendUser.role === "admin") navigate("/admin");
-    else navigate("/shop");
+    if (userData.role === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/shop");
+    }
   };
 
-  // LOGOUT
+  // Logout
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    delete axios.defaults.headers.common["Authorization"];
+    setToken(null);
     setUser(null);
-    navigate("/");
-  };
-  // Register (optional: auto-login after register)
-  const register = (userData, token) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setUser(userData);
     navigate("/login");
   };
 
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    token,
+    isAuthenticated: !!user && !!token,
+    isLoading,
+    login,
+    logout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => useContext(AuthContext);

@@ -1,10 +1,8 @@
+// src/components/ProductGrid.jsx (updated ProductCard)
 import React, { memo, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // ← Add this
 import { ShoppingCart, Eye } from "lucide-react";
-
-/* =======================
-   Product Card
-======================= */
 
 const ProductCard = memo(function ProductCard({
   product,
@@ -13,6 +11,7 @@ const ProductCard = memo(function ProductCard({
   showActions = true,
   disableAnimations = false,
 }) {
+  const navigate = useNavigate(); // ← Hook for navigation
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const variants = disableAnimations
@@ -26,22 +25,32 @@ const ProductCard = memo(function ProductCard({
         },
       };
 
+  // Navigate to single product page when card is clicked (except on buttons)
+  const handleCardClick = (e) => {
+    // Prevent navigation if user clicks on Add to Cart or Quick View buttons
+    if (e.target.closest("button")) return;
+    navigate(`/product/${product._id}`); // ← Use _id from MongoDB
+  };
+
   return (
     <motion.div
       variants={variants}
       initial={disableAnimations ? false : "hidden"}
       animate={disableAnimations ? false : "visible"}
-      className="group"
+      className="group cursor-pointer" // ← Make whole card clickable
+      onClick={handleCardClick} // ← Click anywhere on card → navigate
     >
       {/* Image */}
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-gray-100 shadow-md">
         {!imageLoaded && (
           <div className="absolute inset-0 animate-pulse bg-gray-200" />
         )}
-
         <img
-          src={product.image}
-          alt={product.name}
+          src={
+            product.productImage ||
+            "https://via.placeholder.com/400?text=No+Image"
+          }
+          alt={product.productName}
           loading="lazy"
           onLoad={() => setImageLoaded(true)}
           className={`h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 ${
@@ -49,21 +58,26 @@ const ProductCard = memo(function ProductCard({
           }`}
         />
 
-        {/* Hover Actions */}
+        {/* Hover Actions - still clickable without navigating */}
         {showActions && (
           <div className="absolute inset-0 flex items-end justify-center bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
             <div className="flex gap-3 pb-4">
               <button
-                onClick={() => onAddToCart?.(product)}
+                onClick={(e) => {
+                  e.stopPropagation(); // ← Prevent card navigation
+                  onAddToCart?.(product);
+                }}
                 className="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-orange-50"
               >
                 <ShoppingCart size={16} />
                 Add
               </button>
-
               {onQuickView && (
                 <button
-                  onClick={() => onQuickView(product)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // ← Prevent card navigation
+                    onQuickView?.(product);
+                  }}
                   className="flex items-center gap-2 rounded-full border border-white/40 bg-white/20 px-4 py-2 text-sm font-medium text-white hover:bg-white/30"
                 >
                   <Eye size={16} />
@@ -78,21 +92,17 @@ const ProductCard = memo(function ProductCard({
       {/* Info */}
       <div className="mt-3 text-center">
         <h3 className="line-clamp-2 text-base font-medium text-gray-900 group-hover:text-orange-600">
-          {product.name}
+          {product.productName}
         </h3>
 
-        {product.rating && (
-          <div className="mt-1 flex justify-center items-center gap-1 text-sm">
-            <span className="text-orange-400">
-              {"★".repeat(Math.round(product.rating))}
-            </span>
-            <span className="text-gray-400">({product.rating})</span>
-          </div>
-        )}
-
         <p className="mt-1 text-lg font-semibold text-orange-600">
-          NPR {product.price}
+          NPR {product.productPrice}
         </p>
+
+        {/* Optional: Category badge */}
+        <span className="mt-2 inline-block px-3 py-1 bg-orange-50 text-orange-700 text-xs rounded-full">
+          {product.mainType}
+        </span>
       </div>
     </motion.div>
   );
@@ -101,7 +111,6 @@ const ProductCard = memo(function ProductCard({
 /* =======================
    Product Grid
 ======================= */
-
 export default function ProductGrid({
   products = [],
   onAddToCart,
@@ -127,13 +136,14 @@ export default function ProductGrid({
         sm:grid-cols-2
         md:grid-cols-3
         lg:grid-cols-4
+        xl:grid-cols-5
         gap-6
         md:gap-8
       "
     >
       {products.slice(0, limit).map((product) => (
         <ProductCard
-          key={product.id}
+          key={product._id}
           product={product}
           onAddToCart={onAddToCart}
           onQuickView={onQuickView}
