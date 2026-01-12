@@ -20,6 +20,7 @@ import AdminAddProduct from "./pages/admin/AdminAddProduct";
 import AdminEditProduct from "./pages/admin/AdminEditProduct";
 import AdminUsers from "./pages/admin/AdminUser";
 import MainLayout from "./layouts/MainLayout";
+import ToastConfig from "./components/ToastConfig";
 
 // import Cart from "./pages/Cart";
 // import ProductPage from "./pages/ProductPage";
@@ -28,6 +29,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-stone-50 to-white">
       {/* Navbar - always visible */}
+      <ToastConfig/>
 
       <ScrollToTop />
 
