@@ -63,7 +63,7 @@ exports.createProduct = async (req, res) => {
 
 exports.getProducts = catchAsync(async (req, res) => {
   const products = await Product.find();
-  if (products.lenght === 0) {
+  if (products.length === 0) {
     res.status(400).json({
       message: "No product Found",
       data: [],
@@ -83,7 +83,7 @@ exports.getProduct = async (req, res) => {
       message: "Please provide product id",
     });
   }
-  const productId = await Product.find({ _id: id });
+  const product = await Product.find({ _id: id });
   const productReviews = await Review.find({ productId: id })
     .populate("userId")
     .populate("productId");

@@ -17,11 +17,13 @@ exports.registerUser = async (req, res) => {
     });
   }
 
-  await User.create({
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const newUser = await User.create({
     userName: username,
     userPhoneNumber: phoneNumber,
     userEmail: email,
-    userPassword: bcrypt.hashSync(password, 10),
+    userPassword: hashedPassword,
   });
 
   res.status(201).json({
