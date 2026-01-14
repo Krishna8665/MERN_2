@@ -1,7 +1,8 @@
 // src/pages/ProductDetail.jsx
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import {
   Star,
   Minus,
@@ -14,12 +15,15 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/cartContext";
 
-const API_BASE = "http://localhost:3000"; // ← your backend URL
+const API_BASE = "http://localhost:3000"; // Change to your backend URL in production
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user, token, isAuthenticated } = useAuth();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -36,19 +40,20 @@ export default function ProductDetail() {
       try {
         setLoading(true);
 
-        // 1. Product
+        // Fetch product
         const productRes = await axios.get(`${API_BASE}/product/${id}`);
         const fetched = productRes.data.data?.product?.[0];
         if (!fetched) throw new Error("Product not found");
         setProduct(fetched);
 
-        // 2. Reviews
+        // Fetch reviews
         const reviewsRes = await axios.get(`${API_BASE}/reviews/${id}`);
         setReviews(reviewsRes.data.data || []);
       } catch (err) {
         setError(
           err.response?.data?.message || "Failed to load product/reviews"
         );
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -57,7 +62,7 @@ export default function ProductDetail() {
     fetchData();
   }, [id]);
 
-  // Quantity
+  // Quantity handler
   const handleQuantityChange = (change) => {
     const newQty = quantity + change;
     if (newQty >= 1 && newQty <= (product?.productStockQty || 10)) {
@@ -65,11 +70,42 @@ export default function ProductDetail() {
     }
   };
 
+  // Add to Cart with login redirect
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      // Redirect to login with return URL
+      navigate(`/login?redirect=/product/${id}`);
+      return;
+    }
+
+    if (product?.productStatus !== "available") {
+      alert("Product is not available");
+      return;
+    }
+
+    if (product?.productStockQty < quantity) {
+      alert("Not enough stock available");
+      return;
+    }
+
+    try {
+      await addToCart(product, quantity);
+      alert(`Added ${quantity} × ${product.productName} to cart!`);
+    } catch (err) {
+      alert("Failed to add to cart");
+    }
+  };
+
   // Submit review
   const handleSubmitReview = async () => {
-    if (!isAuthenticated) return alert("Please login to submit review");
+    if (!isAuthenticated) {
+      navigate(`/login?redirect=/product/${id}`);
+      return;
+    }
+
     if (newReview.rating === 0 || !newReview.comment.trim()) {
-      return alert("Rating and comment required");
+      alert("Please provide rating and comment");
+      return;
     }
 
     setReviewLoading(true);
@@ -81,12 +117,11 @@ export default function ProductDetail() {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Refresh reviews
       const res = await axios.get(`${API_BASE}/reviews/${id}`);
       setReviews(res.data.data || []);
 
       setNewReview({ rating: 0, comment: "" });
-      alert("Review submitted!");
+      alert("Review submitted successfully!");
     } catch (err) {
       alert(err.response?.data?.message || "Failed to submit review");
     } finally {
@@ -94,7 +129,7 @@ export default function ProductDetail() {
     }
   };
 
-  // Delete review
+  // Delete own review
   const handleDeleteReview = async (reviewId) => {
     if (!window.confirm("Delete this review?")) return;
 
@@ -103,13 +138,12 @@ export default function ProductDetail() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Refresh
       const res = await axios.get(`${API_BASE}/reviews/${id}`);
       setReviews(res.data.data || []);
 
-      alert("Review deleted!");
+      alert("Review deleted successfully!");
     } catch (err) {
-      alert(err.response?.data?.message || "Cannot delete review");
+      alert(err.response?.data?.message || "Failed to delete review");
     }
   };
 
@@ -119,31 +153,33 @@ export default function ProductDetail() {
   const displayedReviews = reviews.slice(0, visibleReviews);
   const hasMore = visibleReviews < reviews.length;
 
-  // Average rating
   const avgRating = reviews.length
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(
         1
       )
     : "0.0";
 
-  if (loading)
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-orange-600" />
       </div>
     );
-  if (error || !product)
+  }
+
+  if (error || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center text-red-600 text-xl">
         {error || "Product not found"}
       </div>
     );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12 lg:pt-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Image */}
+          {/* Product Image */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -151,20 +187,24 @@ export default function ProductDetail() {
           >
             <div className="aspect-square p-6 sm:p-8">
               <img
-                src={product.productImage || "https://via.placeholder.com/600"}
+                src={
+                  product.productImage ||
+                  "https://via.placeholder.com/600?text=No+Image"
+                }
                 alt={product.productName}
                 className="w-full h-full object-contain"
               />
             </div>
           </motion.div>
 
-          {/* Info */}
+          {/* Product Info */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="space-y-5 sm:space-y-6"
           >
+            {/* Badges */}
             <div className="flex flex-wrap gap-2">
               {product.mainType !== "Veg" && (
                 <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs sm:text-sm">
@@ -185,6 +225,7 @@ export default function ProductDetail() {
               {product.productName}
             </h1>
 
+            {/* Rating */}
             <div className="flex items-center gap-2">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
@@ -204,6 +245,7 @@ export default function ProductDetail() {
               </span>
             </div>
 
+            {/* Price & Stock */}
             <div className="flex items-baseline gap-3">
               <span className="text-3xl sm:text-4xl font-bold text-orange-600">
                 NPR {product.productPrice}
@@ -219,10 +261,11 @@ export default function ProductDetail() {
               {product.productDescription}
             </p>
 
+            {/* Quantity + Add to Cart */}
             <div className="flex flex-col sm:flex-row gap-4 pt-2">
               <div className="inline-flex items-center border border-gray-300 rounded-full bg-white overflow-hidden w-full sm:w-auto">
                 <button
-                  onClick={() => setQuantity((p) => Math.max(1, p - 1))}
+                  onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                   className="px-5 py-3 hover:bg-gray-100 transition"
                   disabled={quantity <= 1}
                 >
@@ -232,7 +275,7 @@ export default function ProductDetail() {
                   {quantity}
                 </span>
                 <button
-                  onClick={() => setQuantity((p) => p + 1)}
+                  onClick={() => setQuantity((prev) => prev + 1)}
                   className="px-5 py-3 hover:bg-gray-100 transition"
                   disabled={quantity >= product.productStockQty}
                 >
@@ -240,21 +283,34 @@ export default function ProductDetail() {
                 </button>
               </div>
 
-              <button className="flex-1 bg-orange-600 text-white py-3 px-6 rounded-full hover:bg-orange-700 transition flex items-center justify-center gap-2 font-medium">
-                <ShoppingCart size={18} /> Add to Cart
+              <button
+                onClick={handleAddToCart}
+                disabled={
+                  product?.productStatus !== "available" ||
+                  product?.productStockQty <= 0
+                }
+                className={`flex-1 py-3 px-6 rounded-full transition flex items-center justify-center gap-2 font-medium text-white
+                  ${
+                    product?.productStatus !== "available" ||
+                    product?.productStockQty <= 0
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-orange-600 hover:bg-orange-700"
+                  }`}
+              >
+                <ShoppingCart size={18} />
+                Add to Cart {quantity > 1 ? `(${quantity})` : ""}
               </button>
             </div>
           </motion.div>
         </div>
 
-        {/* REVIEWS */}
+        {/* Reviews Section */}
         <div className="mt-12 lg:mt-16 border-t border-gray-200 pt-10">
           <h2 className="text-2xl font-bold mb-8 flex items-center gap-3">
             <MessageSquare className="text-orange-600" size={24} />
             Customer Reviews ({reviews.length})
           </h2>
 
-          {/* Review Form */}
           {isAuthenticated ? (
             <div className="bg-white p-5 sm:p-6 rounded-xl shadow-sm mb-10">
               <h3 className="text-lg font-semibold mb-4">Write Your Review</h3>
@@ -305,7 +361,7 @@ export default function ProductDetail() {
                 Please log in to write a review.
               </p>
               <Link
-                to="/login"
+                to={`/login?redirect=/product/${id}`}
                 className="text-orange-600 hover:underline font-medium"
               >
                 Login now
@@ -313,7 +369,6 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Reviews List */}
           <div className="space-y-5 sm:space-y-6">
             {reviews.length === 0 ? (
               <p className="text-center text-gray-600 py-8">
@@ -323,7 +378,7 @@ export default function ProductDetail() {
               displayedReviews.map((review) => (
                 <div
                   key={review._id}
-                  className="bg-white p-5 sm:p-6 rounded-xl shadow-sm"
+                  className="bg-white p-5 sm:p-6 rounded-xl shadow-sm relative"
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div>
@@ -370,11 +425,15 @@ export default function ProductDetail() {
           {reviews.length > 4 && (
             <div className="mt-8 text-center">
               <button
-                onClick={() =>
-                  setVisibleReviews(
-                    hasMore ? (prev) => Math.min(prev + 5, reviews.length) : 4
-                  )
-                }
+                onClick={() => {
+                  if (hasMore) {
+                    setVisibleReviews((prev) =>
+                      Math.min(prev + 5, reviews.length)
+                    );
+                  } else {
+                    setVisibleReviews(4);
+                  }
+                }}
                 className="inline-flex items-center gap-2 text-orange-600 hover:text-orange-700 font-medium"
               >
                 {hasMore ? (
@@ -383,7 +442,8 @@ export default function ProductDetail() {
                   </>
                 ) : (
                   <>
-                    Show Less <ChevronDown size={18} className="rotate-180" />
+                    Show Fewer Reviews{" "}
+                    <ChevronDown size={18} className="rotate-180" />
                   </>
                 )}
               </button>
