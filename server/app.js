@@ -4,7 +4,7 @@ const cors = require("cors");
 const app = express();
 
 require("dotenv").config();
-connectDB();
+//connectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -44,11 +44,19 @@ app.get("/healthz", (req, res) => {
   });
 });
 
-const port = process.env.PORT || 5000;
-app.listen(port, () => {
-  console.log(`Server has started at PORT ${port}`);
-});
+// --- Start server after DB connection ---
+const PORT = process.env.PORT || 5000;
 
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server has started at PORT ${PORT}`);
+      console.log(`Health check available at /healthz`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to MongoDB", err);
+  });
 // app.post("/register", async (req, res) => {
 //   const { email, password, phoneNumber, username } = req.body;
 //   if (!email || !password || !phoneNumber || !username) {
