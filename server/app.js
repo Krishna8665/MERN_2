@@ -36,7 +36,15 @@ app.use("", userReviewRoute);
 app.use("", profileRoute);
 app.use("", cartRoute);
 
-const port = process.env.PORT;
+// Health check route for Render
+app.get("/healthz", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    message: "Backend is running!",
+  });
+});
+
+const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server has started at PORT ${port}`);
 });
