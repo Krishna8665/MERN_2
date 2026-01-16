@@ -146,9 +146,7 @@ export default function Cart() {
 
     // Update local state immediately
     setCartItems((prev) =>
-      prev.map((i) =>
-        i.cartId === cartId ? { ...i, quantity: newQty } : i
-      )
+      prev.map((i) => (i.cartId === cartId ? { ...i, quantity: newQty } : i))
     );
 
     // Sync with backend
@@ -395,3 +393,5 @@ export default function Cart() {
     </div>
   );
 }
+
+//same cart remove garda refresh vayesi tei cart delete huncha
