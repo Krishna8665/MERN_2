@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
     const ext = path.extname(file.originalname); // get extension with dot
-    cb(null, uniqueSuffix + ext); // e.g., 1767350000000-123456789.jpg
+    cb(null, uniqueSuffix + ext); 
   },
 });
 
